@@ -17,28 +17,52 @@ import org.json.JSONObject
 import retrofit2.await
 
 //this will fetching asteroid from the network to the local database
-class AsteroidRepository (private val database:AsteroidDatabase) {
+class AsteroidRepository(private val database: AsteroidDatabase) {
 
-    val asteroids: LiveData<List<Asteroid>> = Transformations.map(database.asteroidDao.getAsteroid()){
-        it.asDomainModel()
-    }
+    val asteroids: LiveData<List<Asteroid>> =
+        Transformations.map(database.asteroidDao.getAsteroid()) {
+            it.asDomainModel()
+        }
 
-    val picture : LiveData<PictureOfDay> = database.pictureOfDayDao.getPicture()
+    val pictures: LiveData<List<PictureOfDay>> = database.pictureOfDayDao.getPicture()
 
-    suspend fun refreshAsteroids(){
-        withContext(Dispatchers.IO){
-            val media = Network.asteroidNetwork2.getPhotoOfTheDay().await()
-            if(media.mediaType=="image"){database.pictureOfDayDao.insert(media)}
-            val response = Network.asteroidNetwork.getAsteroidList().await()
-            val gson = JsonParser().parse(response).asJsonObject
-            val jo2 = JSONObject(gson.toString())
-            val asteroids = parseAsteroidsJsonResult(jo2)
-            database.asteroidDao.insertAllAsteroid(asteroids)
+    suspend fun refreshAsteroids() {
+        withContext(Dispatchers.IO) {
+            try {
+                val media = Network.asteroidNetwork2.getPhotoOfTheDay()
+                if (media.isSuccessful) {
+                    media.body()?.let {
+                        if (it.mediaType == "image") {
+                            database.pictureOfDayDao.insert(it)
+                        }
+                    }
+                }
+                val response = Network.asteroidNetwork.getAsteroidList()
+                if (response.isSuccessful) {
+                    response.body()?.let {
+                        val gson = JsonParser().parse(it).asJsonObject
+                        val jo2 = JSONObject(gson.toString())
+                        val asteroids = parseAsteroidsJsonResult(jo2)
+                        database.asteroidDao.insertAllAsteroid(asteroids)
+                    }
+                } else {
+
+                }
+            }catch (e: Exception) {
+                Log.i("Loooooog", "my exception in asteroid is ${e.message}")
+            }
+            finally {
+                try {
+                    Log.i("Loooooog", "${pictures.value!!.size}")
+                }catch (e:Exception){
+                    Log.i("Loooooog", "my exception in load pictures is ${e.message}")
+                }
+            }
         }
     }
 
-    suspend fun putDumyData(){
-        withContext(Dispatchers.IO){
+    suspend fun putDumyData() {
+        withContext(Dispatchers.IO) {
 //            database.asteroidDao.insertAllAsteroid(
 //                DatabaseAsteroid(
 //                    1, "hi", "1-1-1",

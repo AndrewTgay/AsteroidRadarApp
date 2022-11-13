@@ -69,6 +69,6 @@ class MainViewModel(application: Application): AndroidViewModel(application) {
 
     private suspend fun getAllAsteroidList() {
         repository.refreshAsteroids()
-        _asteroidList = repository.asteroids as MutableLiveData<List<Asteroid>>
+        //_asteroidList = repository.asteroids as MutableLiveData<List<Asteroid>>
     }
 }

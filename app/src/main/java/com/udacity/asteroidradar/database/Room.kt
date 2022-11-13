@@ -15,10 +15,10 @@ interface AsteroidDao{
     fun insertAllAsteroid(asteroid: List<DatabaseAsteroid>)
 
     @Query("SELECT * FROM asteroid_table WHERE closeApproachDate >= :startDay AND closeApproachDate <= :endDay ORDER BY closeApproachDate")
-     fun getAsteroidsFromThisWeek(startDay: String, endDay: String): List<DatabaseAsteroid>
+     fun getAsteroidsFromThisWeek(startDay: String, endDay: String): LiveData<List<DatabaseAsteroid>>
 
     @Query("SELECT * FROM asteroid_table WHERE closeApproachDate = :today ")
-     fun getAsteroidToday(today: String): List<DatabaseAsteroid>
+     fun getAsteroidToday(today: String): LiveData<List<DatabaseAsteroid>>
 
     @Query("DELETE FROM asteroid_table")
      fun clear()
@@ -34,7 +34,7 @@ interface PictureDao {
      fun insert(pictureOfDay: PictureOfDay)
 
     @Query("SELECT * FROM picture_table")
-     fun getPicture(): LiveData<PictureOfDay>
+     fun getPicture(): LiveData<List<PictureOfDay>>
 
 }
 

@@ -6,6 +6,7 @@ import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import com.udacity.asteroidradar.Constants
 import com.udacity.asteroidradar.PictureOfDay
 import retrofit2.Call
+import retrofit2.Response
 import retrofit2.Retrofit
 import retrofit2.converter.moshi.MoshiConverterFactory
 import retrofit2.converter.scalars.ScalarsConverterFactory
@@ -17,18 +18,18 @@ import java.time.LocalDate
 
 interface AsteroidApiService{
     @GET("neo/rest/v1/feed")
-    fun getAsteroidList(
+    suspend fun getAsteroidList(
     @Query("start_date") start_date: String = LocalDate.now().toString(),
     @Query("end_date") end_date: String = LocalDate.now().plusDays(7).toString(),
     @Query("api_key") apiKey: String = Constants.API_KEY ):
-            Call<String>
+            Response<String>
 
 }
 interface PictureAsteroidApiService {
     @GET("planetary/apod")
-    fun getPhotoOfTheDay(
+    suspend fun getPhotoOfTheDay(
         @Query("api_key") apiKey: String = Constants.API_KEY ):
-            Call<PictureOfDay>
+            Response<PictureOfDay>
 }
 
 private val moshi = Moshi.Builder()
