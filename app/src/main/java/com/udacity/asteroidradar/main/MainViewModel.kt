@@ -40,13 +40,21 @@ class MainViewModel(application: Application): AndroidViewModel(application) {
 
     private var _asteroidList = MutableLiveData<List<Asteroid>>()
     val asteroidList : LiveData<List<Asteroid>>
-        get() = repository.asteroids
+        get() = _asteroidList
 
 
     private val _natigateToAsteroidDetails = MutableLiveData<Asteroid?>()
     val natigateToAsteroidDetails: LiveData<Asteroid?>
         get() = _natigateToAsteroidDetails
 
+    fun menuItemSeletcet(choose:Int){
+        when(choose){
+            0 -> repository.getWeekAsteroids()
+            1-> repository.getTodayAsteroids()
+            else->repository.getSavedAsteroids()
+        }
+        _asteroidList = repository.asteroids as MutableLiveData<List<Asteroid>>
+    }
     fun onAsteroidClicked(asteroid: Asteroid) {
         _natigateToAsteroidDetails.value = asteroid
     }
@@ -62,6 +70,7 @@ class MainViewModel(application: Application): AndroidViewModel(application) {
     init {
         viewModelScope.launch {
       //      _pictureOfTheDay = repository.picture as MutableLiveData<PictureOfDay>
+            repository.getSavedAsteroids()
             _asteroidList = repository.asteroids as MutableLiveData<List<Asteroid>>
             getAllAsteroidList()
             }
@@ -69,6 +78,6 @@ class MainViewModel(application: Application): AndroidViewModel(application) {
 
     private suspend fun getAllAsteroidList() {
         repository.refreshAsteroids()
-        //_asteroidList = repository.asteroids as MutableLiveData<List<Asteroid>>
+       //_asteroidList = repository.asteroids as MutableLiveData<List<Asteroid>>
     }
 }

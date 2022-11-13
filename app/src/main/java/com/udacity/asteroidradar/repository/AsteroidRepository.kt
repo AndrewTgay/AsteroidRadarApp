@@ -15,16 +15,34 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.json.JSONObject
 import retrofit2.await
+import java.time.LocalDate
 
 //this will fetching asteroid from the network to the local database
 class AsteroidRepository(private val database: AsteroidDatabase) {
 
-    val asteroids: LiveData<List<Asteroid>> =
-        Transformations.map(database.asteroidDao.getAsteroid()) {
-            it.asDomainModel()
-        }
+    lateinit var asteroids: LiveData<List<Asteroid>>
 
     val pictures: LiveData<List<PictureOfDay>> = database.pictureOfDayDao.getPicture()
+
+    fun getWeekAsteroids(){
+        asteroids = Transformations.map(database.asteroidDao.getAsteroidsFromThisWeek(
+            LocalDate.now().toString(),LocalDate.now().plusDays(7).toString()))
+        {
+            it.asDomainModel()
+        }
+    }
+
+    fun getSavedAsteroids(){
+        asteroids = Transformations.map(database.asteroidDao.getAsteroid()) {
+            it.asDomainModel()
+        }
+    }
+
+    fun getTodayAsteroids(){
+        asteroids = Transformations.map(database.asteroidDao.getAsteroidToday(LocalDate.now().toString())) {
+            it.asDomainModel()
+        }
+    }
 
     suspend fun refreshAsteroids() {
         withContext(Dispatchers.IO) {
