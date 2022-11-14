@@ -18,14 +18,14 @@
 
         <ImageView
             android:id="@+id/asteroid_icon"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
+            statusIcon="@{asteroidVariable.potentiallyHazardous}"
+            android:layout_width="44dp"
+            android:layout_height="36dp"
             android:layout_marginEnd="16dp"
+            app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="parent"
-            tools:srcCompat="@drawable/ic_status_normal"
-            statusIcon="@{asteroidVariable.potentiallyHazardous}"/>
+            tools:srcCompat="@drawable/ic_status_normal" />
 
         <TextView
             android:id="@+id/asteroid_name"
@@ -37,14 +37,17 @@
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintLeft_toLeftOf="parent"
             tools:text="2015 (nv s)"
+            android:textSize="24sp"
             android:text="@{asteroidVariable.codename}" />
 
         <TextView
             android:id="@+id/asteroid_date"
             android:textColor="#FFFFFF"
             android:layout_marginLeft="10dp"
+            android:layout_marginTop="5dp"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:textSize="18sp"
             app:layout_constraintTop_toBottomOf="@id/asteroid_name"
             app:layout_constraintLeft_toLeftOf="parent"
             tools:text="2015-12-21"

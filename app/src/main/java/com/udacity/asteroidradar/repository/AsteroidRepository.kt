@@ -1,60 +1,57 @@
 package com.udacity.asteroidradar.repository
 
 import android.util.Log
-import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Transformations
 import com.google.gson.JsonParser
+import com.udacity.asteroidradar.DatabasePictureOfDay
 import com.udacity.asteroidradar.PictureOfDay
 import com.udacity.asteroidradar.api.parseAsteroidsJsonResult
 import com.udacity.asteroidradar.database.AsteroidDatabase
-import com.udacity.asteroidradar.database.DatabaseAsteroid
 import com.udacity.asteroidradar.database.asDomainModel
 import com.udacity.asteroidradar.domain.Asteroid
 import com.udacity.asteroidradar.network.Network
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.json.JSONObject
-import retrofit2.await
 import java.time.LocalDate
 
 //this will fetching asteroid from the network to the local database
 class AsteroidRepository(private val database: AsteroidDatabase) {
 
-    lateinit var asteroids: LiveData<List<Asteroid>>
+    var asteroids: MutableLiveData<List<Asteroid>> =
+        Transformations.map(database.asteroidDao.getAsteroid()) {
+            it.asDomainModel()
+        } as MutableLiveData<List<Asteroid>>
 
-    val pictures: LiveData<List<PictureOfDay>> = database.pictureOfDayDao.getPicture()
 
-    fun getWeekAsteroids(){
-        asteroids = Transformations.map(database.asteroidDao.getAsteroidsFromThisWeek(
-            LocalDate.now().toString(),LocalDate.now().plusDays(7).toString()))
+    fun getWeekAsteroids() {
+        asteroids = Transformations.map(
+            database.asteroidDao.getAsteroidsFromThisWeek(
+                LocalDate.now().toString(), LocalDate.now().plusDays(7).toString()
+            )
+        )
         {
             it.asDomainModel()
-        }
+        } as MutableLiveData<List<Asteroid>>
     }
 
-    fun getSavedAsteroids(){
+    fun getSavedAsteroids() {
         asteroids = Transformations.map(database.asteroidDao.getAsteroid()) {
             it.asDomainModel()
-        }
+        } as MutableLiveData<List<Asteroid>>
     }
 
-    fun getTodayAsteroids(){
-        asteroids = Transformations.map(database.asteroidDao.getAsteroidToday(LocalDate.now().toString())) {
-            it.asDomainModel()
-        }
+    fun getTodayAsteroids() {
+        asteroids =
+            Transformations.map(database.asteroidDao.getAsteroidToday(LocalDate.now().toString())) {
+                it.asDomainModel()
+            } as MutableLiveData<List<Asteroid>>
     }
 
     suspend fun refreshAsteroids() {
         withContext(Dispatchers.IO) {
             try {
-                val media = Network.asteroidNetwork2.getPhotoOfTheDay()
-                if (media.isSuccessful) {
-                    media.body()?.let {
-                        if (it.mediaType == "image") {
-                            database.pictureOfDayDao.insert(it)
-                        }
-                    }
-                }
                 val response = Network.asteroidNetwork.getAsteroidList()
                 if (response.isSuccessful) {
                     response.body()?.let {
@@ -66,21 +63,14 @@ class AsteroidRepository(private val database: AsteroidDatabase) {
                 } else {
 
                 }
-            }catch (e: Exception) {
+                Log.i("Looooog", "finish try")
+            } catch (e: Exception) {
                 Log.i("Loooooog", "my exception in asteroid is ${e.message}")
             }
-            finally {
-                try {
-                    Log.i("Loooooog", "${pictures.value!!.size}")
-                }catch (e:Exception){
-                    Log.i("Loooooog", "my exception in load pictures is ${e.message}")
-                }
-            }
         }
-    }
 
-    suspend fun putDumyData() {
-        withContext(Dispatchers.IO) {
+        suspend fun putDumyData() {
+            withContext(Dispatchers.IO) {
 //            database.asteroidDao.insertAllAsteroid(
 //                DatabaseAsteroid(
 //                    1, "hi", "1-1-1",
@@ -105,6 +95,7 @@ class AsteroidRepository(private val database: AsteroidDatabase) {
 //                    false
 //                )
 //            )
+            }
         }
     }
 }

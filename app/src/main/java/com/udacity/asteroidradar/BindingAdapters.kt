@@ -17,6 +17,15 @@ fun loadImage(view: ImageView,
     Picasso.with(view.context).load(imageUri).into(ivBasicImage)
 }
 
+@BindingAdapter("pictureUrl")
+fun bindUriToImage(imageView: ImageView, strUrl: String?) {
+    Picasso.with(imageView.context)
+        .load(strUrl)
+        .placeholder(R.drawable.placeholder_picture_of_day)
+        .error(R.drawable.placeholder_picture_of_day)
+        .into(imageView)
+}
+
 @BindingAdapter("listData")
 fun bindRecyclerView(recyclerView: RecyclerView, data:List<Asteroid>?){
     val adapter = recyclerView.adapter as AsteroidAdapter

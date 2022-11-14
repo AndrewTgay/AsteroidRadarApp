@@ -1,8 +1,11 @@
 package com.udacity.asteroidradar.api
 
-import com.udacity.asteroidradar.domain.Asteroid
 import com.udacity.asteroidradar.Constants
+import com.udacity.asteroidradar.PictureOfDay
 import com.udacity.asteroidradar.database.DatabaseAsteroid
+import com.udacity.asteroidradar.network.Network
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import org.json.JSONObject
 import java.text.SimpleDateFormat
 import java.util.*
@@ -57,4 +60,14 @@ private fun getNextSevenDaysFormattedDates(): ArrayList<String> {
     }
 
     return formattedDateList
+}
+suspend fun getPictureOfDay(): PictureOfDay? {
+    var pictureOfDay: PictureOfDay
+    withContext(Dispatchers.IO) {
+        pictureOfDay = Network.asteroidNetwork.getPhotoOfTheDay().await()
+    }
+    if (pictureOfDay.mediaType == "image") {
+        return pictureOfDay
+    }
+    return null
 }

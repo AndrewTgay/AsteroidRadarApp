@@ -5,6 +5,7 @@ import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import com.udacity.asteroidradar.Constants
 import com.udacity.asteroidradar.PictureOfDay
+import kotlinx.coroutines.Deferred
 import retrofit2.Call
 import retrofit2.Response
 import retrofit2.Retrofit
@@ -24,13 +25,13 @@ interface AsteroidApiService{
     @Query("api_key") apiKey: String = Constants.API_KEY ):
             Response<String>
 
-}
-interface PictureAsteroidApiService {
     @GET("planetary/apod")
-    suspend fun getPhotoOfTheDay(
-        @Query("api_key") apiKey: String = Constants.API_KEY ):
-            Response<PictureOfDay>
+    fun getPhotoOfTheDay(
+        @Query("api_key") apiKey: String = Constants.API_KEY )
+            : Deferred<PictureOfDay>
+
 }
+
 
 private val moshi = Moshi.Builder()
     .add(KotlinJsonAdapterFactory())
@@ -41,14 +42,10 @@ object Network {
     private val retrofit = Retrofit.Builder()
         .baseUrl(Constants.BASE_URL)
         .addConverterFactory(ScalarsConverterFactory.create())
+        .addConverterFactory(MoshiConverterFactory.create(moshi))
+        .addCallAdapterFactory(CoroutineCallAdapterFactory())
         .build()
 
     val asteroidNetwork = retrofit.create(AsteroidApiService::class.java)
 
-    private val retrofit2 = Retrofit.Builder()
-        .baseUrl(Constants.BASE_URL)
-        .addConverterFactory(MoshiConverterFactory.create(moshi))
-        .build()
-
-    val asteroidNetwork2 = retrofit2.create(PictureAsteroidApiService::class.java)
 }

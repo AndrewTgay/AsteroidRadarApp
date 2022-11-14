@@ -34,9 +34,14 @@ class MainFragment : Fragment() {
             }
         })
         binding.asteroidRecycler.adapter = adapter
-
         binding.lifecycleOwner = this
         setHasOptionsMenu(true)
+
+        viewModel.asteroidList.observe(viewLifecycleOwner, Observer {
+            if(it!=null){
+                adapter.submitList(it)
+            }
+        })
 
         return binding.root
     }
