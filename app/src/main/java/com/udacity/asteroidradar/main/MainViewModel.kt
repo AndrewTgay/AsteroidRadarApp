@@ -18,6 +18,7 @@ import com.udacity.asteroidradar.domain.Asteroid
 import com.udacity.asteroidradar.network.Network
 import com.udacity.asteroidradar.repository.AsteroidRepository
 import kotlinx.coroutines.*
+import kotlinx.coroutines.flow.collect
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -39,7 +40,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         get() = _pictureOfTheDay
 
 
-    var _asteroidList = MutableLiveData<List<Asteroid>>()
+    private var _asteroidList = MutableLiveData<List<Asteroid>>()
     val asteroidList: LiveData<List<Asteroid>>
         get() = _asteroidList
 
@@ -49,10 +50,12 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         get() = _natigateToAsteroidDetails
 
     fun menuItemSeletcet(choose: Int) {
-        when (choose) {
-            0 -> getWeekAsteroids()
-            1 -> getTodayAsteroids()
-            else -> getSavedAsteroids()
+        viewModelScope.launch {
+            when (choose) {
+                0 -> getWeekAsteroids()
+                1 -> getTodayAsteroids()
+                else -> getSavedAsteroids()
+            }
         }
     }
 
@@ -87,8 +90,8 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     private lateinit var listOfPicturesOfTheDay: List<DatabasePictureOfDay>
 
     init {
+        getWeekAsteroids()
         viewModelScope.launch {
-            getWeekAsteroids()
             getThePictureOfTheDay()
             refreshing()
         }
@@ -105,27 +108,32 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun getWeekAsteroids() {
-        _asteroidList = Transformations.map(
-            database.asteroidDao.getAsteroidsFromThisWeek(
+        viewModelScope.launch {
+        database.asteroidDao.getAsteroidsFromThisWeek(
                 LocalDate.now().toString(), LocalDate.now().plusDays(7).toString()
-            )
-        )
-        {
-            it.asDomainModel()
-        } as MutableLiveData<List<Asteroid>>
+            ).collect() {
+            _asteroidList.value = it
+        }
+        }
     }
 
     fun getSavedAsteroids() {
-        _asteroidList = Transformations.map(database.asteroidDao.getAsteroid(LocalDate.now().toString())) {
-            it.asDomainModel()
-        } as MutableLiveData<List<Asteroid>>
+        viewModelScope.launch {
+            database.asteroidDao.getAsteroid(LocalDate.now().toString())
+                .collect() {
+                _asteroidList.value = it
+            }
+        }
     }
 
     fun getTodayAsteroids() {
-        _asteroidList =
-            Transformations.map(database.asteroidDao.getAsteroidToday(LocalDate.now().toString())) {
-                it.asDomainModel()
-            } as MutableLiveData<List<Asteroid>>
+        viewModelScope.launch {
+            database.asteroidDao.getAsteroidToday(
+                LocalDate.now().toString()
+            ).collect() {
+                _asteroidList.value = it
+            }
+        }
     }
 
 }

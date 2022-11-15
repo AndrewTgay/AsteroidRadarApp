@@ -6,20 +6,21 @@ import androidx.room.*
 import com.udacity.asteroidradar.DatabasePictureOfDay
 import com.udacity.asteroidradar.PictureOfDay
 import com.udacity.asteroidradar.domain.Asteroid
+import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface AsteroidDao{
     @Query("SELECT * FROM asteroid_table WHERE closeApproachDate >= :startDay ORDER BY closeApproachDate")
-    fun getAsteroid(startDay: String):LiveData<List<DatabaseAsteroid>>
+    fun getAsteroid(startDay: String):Flow<List<Asteroid>>
 
     @Insert(onConflict=OnConflictStrategy.REPLACE)
     fun insertAllAsteroid(asteroid: List<DatabaseAsteroid>)
 
     @Query("SELECT * FROM asteroid_table WHERE closeApproachDate >= :startDay AND closeApproachDate <= :endDay ORDER BY closeApproachDate")
-     fun getAsteroidsFromThisWeek(startDay: String, endDay: String): LiveData<List<DatabaseAsteroid>>
+     fun getAsteroidsFromThisWeek(startDay: String, endDay: String): Flow<List<Asteroid>>
 
     @Query("SELECT * FROM asteroid_table WHERE closeApproachDate = :today ")
-     fun getAsteroidToday(today: String): LiveData<List<DatabaseAsteroid>>
+     fun getAsteroidToday(today: String): Flow<List<  Asteroid>>
 
     @Query("DELETE FROM asteroid_table")
      fun clear()
