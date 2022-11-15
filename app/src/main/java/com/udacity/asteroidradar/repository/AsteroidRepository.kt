@@ -6,6 +6,7 @@ import androidx.lifecycle.Transformations
 import com.google.gson.JsonParser
 import com.udacity.asteroidradar.DatabasePictureOfDay
 import com.udacity.asteroidradar.PictureOfDay
+import com.udacity.asteroidradar.api.getPictureOfDay
 import com.udacity.asteroidradar.api.parseAsteroidsJsonResult
 import com.udacity.asteroidradar.database.AsteroidDatabase
 import com.udacity.asteroidradar.database.asDomainModel
@@ -18,36 +19,6 @@ import java.time.LocalDate
 
 //this will fetching asteroid from the network to the local database
 class AsteroidRepository(private val database: AsteroidDatabase) {
-
-    var asteroids: MutableLiveData<List<Asteroid>> =
-        Transformations.map(database.asteroidDao.getAsteroid()) {
-            it.asDomainModel()
-        } as MutableLiveData<List<Asteroid>>
-
-
-    fun getWeekAsteroids() {
-        asteroids = Transformations.map(
-            database.asteroidDao.getAsteroidsFromThisWeek(
-                LocalDate.now().toString(), LocalDate.now().plusDays(7).toString()
-            )
-        )
-        {
-            it.asDomainModel()
-        } as MutableLiveData<List<Asteroid>>
-    }
-
-    fun getSavedAsteroids() {
-        asteroids = Transformations.map(database.asteroidDao.getAsteroid()) {
-            it.asDomainModel()
-        } as MutableLiveData<List<Asteroid>>
-    }
-
-    fun getTodayAsteroids() {
-        asteroids =
-            Transformations.map(database.asteroidDao.getAsteroidToday(LocalDate.now().toString())) {
-                it.asDomainModel()
-            } as MutableLiveData<List<Asteroid>>
-    }
 
     suspend fun refreshAsteroids() {
         withContext(Dispatchers.IO) {
@@ -69,32 +40,18 @@ class AsteroidRepository(private val database: AsteroidDatabase) {
             }
         }
 
-        suspend fun putDumyData() {
-            withContext(Dispatchers.IO) {
-//            database.asteroidDao.insertAllAsteroid(
-//                DatabaseAsteroid(
-//                    1, "hi", "1-1-1",
-//                    12.5, 13.5,
-//                    19.2, 1560.5,
-//                    true),
-//                DatabaseAsteroid(
-//                    2, "hi2", "21-21-21",
-//                    12.5, 13.5,
-//                    19.2, 1560.5,
-//                    true
-//                ),
-//                DatabaseAsteroid(
-//                    3, "hi3", "13-13-13",
-//                    12.5, 13.5,
-//                    19.2, 1560.5,
-//                    false
-//                ),DatabaseAsteroid(
-//                    4, "hi44", "14-4-14",
-//                    12.5, 13.5,
-//                    19.2, 1560.5,
-//                    false
-//                )
-//            )
+    }
+    suspend fun refreshPictureOfDay() {
+        val picture = getPictureOfDay()
+        withContext(Dispatchers.IO) {
+            if (picture != null) {
+                database.pictureOfDayDao.insert(
+                    DatabasePictureOfDay(
+                        picture.mediaType,
+                        picture.title,
+                        picture.url
+                    )
+                )
             }
         }
     }

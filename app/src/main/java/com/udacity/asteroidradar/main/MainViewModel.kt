@@ -7,16 +7,12 @@ import android.support.v4.os.IResultReceiver
 import android.util.Log
 import android.widget.Toast
 import androidx.annotation.RequiresApi
-import androidx.lifecycle.AndroidViewModel
-import androidx.lifecycle.LifecycleOwner
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.Observer
-import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.*
 import com.udacity.asteroidradar.DatabasePictureOfDay
 import com.udacity.asteroidradar.PictureOfDay
 import com.udacity.asteroidradar.api.getPictureOfDay
 import com.udacity.asteroidradar.database.DatabaseAsteroid
+import com.udacity.asteroidradar.database.asDomainModel
 import com.udacity.asteroidradar.database.getDatabase
 import com.udacity.asteroidradar.domain.Asteroid
 import com.udacity.asteroidradar.network.Network
@@ -43,10 +39,17 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         get() = _pictureOfTheDay
 
 
-    private var _asteroidList = MutableLiveData<List<Asteroid>>()
+    var _asteroidList = MutableLiveData<List<Asteroid>>()
     val asteroidList: LiveData<List<Asteroid>>
         get() = _asteroidList
 
+//    private val _dataChanged = MutableLiveData<Boolean?>()
+//    val dataChanged: LiveData<Boolean?>
+//        get() = _dataChanged
+//
+//    fun dataChangedIsDone(){
+//        _dataChanged.value = false
+//    }
 
     private val _natigateToAsteroidDetails = MutableLiveData<Asteroid?>()
     val natigateToAsteroidDetails: LiveData<Asteroid?>
@@ -54,11 +57,10 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     fun menuItemSeletcet(choose: Int) {
         when (choose) {
-            0 -> repository.getWeekAsteroids()
-            1 -> repository.getTodayAsteroids()
-            else -> repository.getSavedAsteroids()
+            0 -> getWeekAsteroids()
+            1 -> getTodayAsteroids()
+            else -> getSavedAsteroids()
         }
-        _asteroidList = repository.asteroids as MutableLiveData<List<Asteroid>>
     }
 
     suspend fun getThePictureOfTheDay() {
@@ -92,9 +94,8 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     private lateinit var listOfPicturesOfTheDay: List<DatabasePictureOfDay>
 
     init {
-
         viewModelScope.launch {
-            _asteroidList = repository.asteroids
+            getWeekAsteroids()
             getThePictureOfTheDay()
             refreshingg()
         }
@@ -103,27 +104,37 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     private suspend fun refreshingg() {
         try {
-            refreshPictureOfDay()
+            repository.refreshPictureOfDay()
             repository.refreshAsteroids()
         }catch (e:Exception){
 
         }
     }
 
-    private suspend fun refreshPictureOfDay() {
-        val picture = getPictureOfDay()
-        withContext(Dispatchers.IO) {
-            if (picture != null) {
-                database.pictureOfDayDao.insert(
-                    DatabasePictureOfDay(
-                        picture.mediaType,
-                        picture.title,
-                        picture.url
-                    )
-                )
-            }
-        }
-        _pictureOfTheDay.value = picture
+
+
+    fun getWeekAsteroids() {
+        _asteroidList = Transformations.map(
+            database.asteroidDao.getAsteroidsFromThisWeek(
+                LocalDate.now().toString(), LocalDate.now().plusDays(7).toString()
+            )
+        )
+        {
+            it.asDomainModel()
+        } as MutableLiveData<List<Asteroid>>
+    }
+
+    fun getSavedAsteroids() {
+        _asteroidList = Transformations.map(database.asteroidDao.getAsteroid(LocalDate.now().toString())) {
+            it.asDomainModel()
+        } as MutableLiveData<List<Asteroid>>
+    }
+
+    fun getTodayAsteroids() {
+        _asteroidList =
+            Transformations.map(database.asteroidDao.getAsteroidToday(LocalDate.now().toString())) {
+                it.asDomainModel()
+            } as MutableLiveData<List<Asteroid>>
     }
 
 }
