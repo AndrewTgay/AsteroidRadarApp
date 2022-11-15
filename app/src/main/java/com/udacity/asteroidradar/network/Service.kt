@@ -3,6 +3,7 @@ package com.udacity.asteroidradar.network
 import com.jakewharton.retrofit2.adapter.kotlin.coroutines.CoroutineCallAdapterFactory
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
+import com.udacity.asteroidradar.BuildConfig
 import com.udacity.asteroidradar.Constants
 import com.udacity.asteroidradar.PictureOfDay
 import kotlinx.coroutines.Deferred
@@ -22,12 +23,12 @@ interface AsteroidApiService{
     suspend fun getAsteroidList(
     @Query("start_date") start_date: String = LocalDate.now().toString(),
     @Query("end_date") end_date: String = LocalDate.now().plusDays(7).toString(),
-    @Query("api_key") apiKey: String = Constants.API_KEY ):
+    @Query("api_key") apiKey: String = BuildConfig.NASA_API_KEY ):
             Response<String>
 
     @GET("planetary/apod")
     fun getPhotoOfTheDay(
-        @Query("api_key") apiKey: String = Constants.API_KEY )
+        @Query("api_key") apiKey: String = BuildConfig.NASA_API_KEY )
             : Deferred<PictureOfDay>
 
 }
@@ -38,6 +39,7 @@ private val moshi = Moshi.Builder()
     .build()
 
 object Network {
+
     // Configure retrofit to parse JSON and use coroutines
     private val retrofit = Retrofit.Builder()
         .baseUrl(Constants.BASE_URL)

@@ -43,13 +43,6 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     val asteroidList: LiveData<List<Asteroid>>
         get() = _asteroidList
 
-//    private val _dataChanged = MutableLiveData<Boolean?>()
-//    val dataChanged: LiveData<Boolean?>
-//        get() = _dataChanged
-//
-//    fun dataChangedIsDone(){
-//        _dataChanged.value = false
-//    }
 
     private val _natigateToAsteroidDetails = MutableLiveData<Asteroid?>()
     val natigateToAsteroidDetails: LiveData<Asteroid?>
@@ -97,12 +90,12 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         viewModelScope.launch {
             getWeekAsteroids()
             getThePictureOfTheDay()
-            refreshingg()
+            refreshing()
         }
     }
 
 
-    private suspend fun refreshingg() {
+    private suspend fun refreshing() {
         try {
             repository.refreshPictureOfDay()
             repository.refreshAsteroids()
@@ -110,8 +103,6 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
         }
     }
-
-
 
     fun getWeekAsteroids() {
         _asteroidList = Transformations.map(

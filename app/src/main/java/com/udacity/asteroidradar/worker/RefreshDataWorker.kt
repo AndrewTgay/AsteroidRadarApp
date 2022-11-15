@@ -22,6 +22,8 @@ class RefreshDataWorker(appContext: Context, params: WorkerParameters): Coroutin
             Result.success()
         } catch (e: HttpException) {
             Result.retry()
+
+
         }
     }
 }
